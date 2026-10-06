@@ -2,171 +2,45 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f3a4d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
 <title>Cash Payment Vouchers</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<!-- LOCK SCREEN -->
-<section id="lock" class="lock hidden">
-  <form id="lockForm" class="card lock-card" autocomplete="off">
-    <h1 id="lockTitle">Cash Vouchers</h1>
-    <p id="lockHint" class="muted"></p>
-    <input id="lockPin" type="password" inputmode="numeric" maxlength="6" placeholder="6-digit PIN" required>
-    <input id="lockPin2" type="password" inputmode="numeric" maxlength="6" placeholder="Confirm PIN" class="hidden">
-    <button class="btn primary" type="submit">Unlock</button>
-    <p id="lockErr" class="error"></p>
+<section id="login" class="lock hidden">
+  <form id="loginForm" class="card lock-card" autocomplete="on">
+    <h1 id="loginTitle">Cash Vouchers</h1>
+    <p class="muted">Sign in to continue</p>
+    <input id="lUrl" type="url" placeholder="Server URL (https://script.google.com/…)" class="hidden">
+    <input id="lEmail" type="email" placeholder="Email" autocomplete="username" required>
+    <input id="lPin" type="password" inputmode="numeric" maxlength="6" placeholder="6-digit PIN" autocomplete="current-password" required>
+    <button class="btn primary" id="lBtn">Sign in</button>
+    <p id="lErr" class="error"></p>
   </form>
 </section>
 
-<!-- APP -->
 <div id="app" class="app hidden">
   <aside class="side">
-    <div class="brand" id="brandName">Cash Vouchers</div>
-    <nav id="nav">
-      <button data-v="overview" class="active">Overview</button>
-      <button data-v="new">New Payment</button>
-      <button data-v="register">Register</button>
-      <button data-v="reports">Reports</button>
-      <button data-v="vendors">Vendors</button>
-      <button data-v="settings">Settings</button>
-    </nav>
-    <button class="btn ghost" id="lockBtn">Lock</button>
+    <div class="brand" id="brand">Cash Vouchers</div>
+    <nav id="nav"></nav>
+    <div class="who" id="who"></div>
   </aside>
-
   <main class="main">
-    <div id="alert" class="alert hidden"></div>
-
-    <!-- OVERVIEW -->
-    <section id="v-overview" class="view">
-      <h1>Today's Overview</h1>
-      <div class="stats">
-        <div class="card stat"><span>Cash out today</span><b id="stToday">₹0</b></div>
-        <div class="card stat"><span>Vouchers today</span><b id="stCount">0</b></div>
-        <div class="card stat"><span>Latest voucher</span><b id="stLatest">–</b></div>
-      </div>
-      <div class="card">
-        <h2>Recent Payments</h2>
-        <div class="table-wrap"><table><thead><tr><th>No</th><th>Date</th><th>Paid To</th><th class="r">Amount</th><th>Status</th><th></th></tr></thead><tbody id="recentBody"></tbody></table></div>
-      </div>
-    </section>
-
-    <!-- NEW -->
-    <section id="v-new" class="view hidden">
-      <h1>New Cash Payment</h1>
-      <form id="newForm" class="card" autocomplete="off">
-        <label>Date <input type="date" id="nDate" required></label>
-        <div id="rows"></div>
-        <datalist id="vendorList"></datalist>
-        <div class="actions">
-          <button type="button" class="btn" id="addRow">+ Add row</button>
-          <button type="submit" class="btn primary">Save payments</button>
-        </div>
-        <p class="muted">Press Enter in the amount field to add another row.</p>
-      </form>
-    </section>
-
-    <!-- REGISTER -->
-    <section id="v-register" class="view hidden">
-      <h1>Payment Register</h1>
-      <div class="card filters">
-        <input id="fSearch" placeholder="Search no / vendor">
-        <select id="fVendor"><option value="">All vendors</option></select>
-        <label>From <input type="date" id="fFrom"></label>
-        <label>To <input type="date" id="fTo"></label>
-        <label class="chk"><input type="checkbox" id="fCancelled"> Show cancelled</label>
-        <button class="btn" id="fClear">Clear</button>
-        <button class="btn" id="fCsv">Export CSV</button>
-      </div>
-      <div class="card">
-        <div class="total">Total: <b id="regTotal">₹0</b> <span class="muted" id="regCount"></span></div>
-        <div class="table-wrap"><table><thead><tr><th>No</th><th>Date</th><th>Paid To</th><th class="r">Amount</th><th>Status</th><th></th></tr></thead><tbody id="regBody"></tbody></table></div>
-      </div>
-    </section>
-
-    <!-- REPORTS -->
-    <section id="v-reports" class="view hidden">
-      <h1>Reports</h1>
-      <div class="card filters">
-        <label>From <input type="date" id="rFrom"></label>
-        <label>To <input type="date" id="rTo"></label>
-        <button class="btn primary" id="rRun">Run</button>
-        <button class="btn" id="rPrint">Print</button>
-      </div>
-      <div class="two">
-        <div class="card"><h2>By Vendor</h2><div class="table-wrap"><table><thead><tr><th>Vendor</th><th class="r">Count</th><th class="r">Total</th></tr></thead><tbody id="repVendor"></tbody></table></div></div>
-        <div class="card"><h2>By Day</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th class="r">Count</th><th class="r">Total</th></tr></thead><tbody id="repDay"></tbody></table></div></div>
-      </div>
-    </section>
-
-    <!-- VENDORS -->
-    <section id="v-vendors" class="view hidden">
-      <h1>Vendors</h1>
-      <form id="vForm" class="card filters" autocomplete="off">
-        <input type="hidden" id="vId">
-        <input id="vName" placeholder="Vendor name" required>
-        <input id="vCompany" placeholder="Company (optional)">
-        <input id="vMobile" placeholder="Mobile (optional)">
-        <button class="btn primary" type="submit">Save vendor</button>
-        <button class="btn" type="button" id="vClear">Clear</button>
-      </form>
-      <div class="card"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Company</th><th>Mobile</th><th>Status</th><th></th></tr></thead><tbody id="vBody"></tbody></table></div></div>
-    </section>
-
-    <!-- SETTINGS -->
-    <section id="v-settings" class="view hidden">
-      <h1>Settings</h1>
-      <form id="setForm" class="card" autocomplete="off">
-        <h2>Property</h2>
-        <label>Name <input id="sName"></label>
-        <label>Address <textarea id="sAddr" rows="2"></textarea></label>
-        <label>Next voucher number <input id="sSeq" type="number" min="1"></label>
-        <button class="btn primary" type="submit">Save settings</button>
-      </form>
-      <form id="pinForm" class="card" autocomplete="off">
-        <h2>Change PIN</h2>
-        <div class="filters">
-          <input id="pOld" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN" required>
-          <input id="pNew" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN" required>
-          <button class="btn primary" type="submit">Change PIN</button>
-        </div>
-      </form>
-      <div class="card">
-        <h2>Backup &amp; Restore</h2>
-        <p class="muted">Data lives only in this browser. Download a backup regularly and keep it somewhere safe (e.g. Google Drive). Restore it on any other device.</p>
-        <div class="actions">
-          <button class="btn primary" id="bkExport">Download backup (.json)</button>
-          <label class="btn">Restore backup <input type="file" id="bkImport" accept=".json" hidden></label>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Audit Log <span class="muted">(last 50)</span></h2>
-        <div class="table-wrap"><table><thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead><tbody id="auditBody"></tbody></table></div>
-      </div>
-    </section>
+    <div id="banner" class="banner hidden"></div>
+    <div id="view"></div>
   </main>
 </div>
 
-<!-- EDIT MODAL -->
-<div id="modal" class="modal hidden">
-  <form id="editForm" class="card modal-card" autocomplete="off">
-    <h2>Edit Payment <span id="eNo"></span></h2>
-    <input type="hidden" id="eId">
-    <label>Date <input type="date" id="eDate" required></label>
-    <label>Paid to <input id="eVendor" list="vendorList" required></label>
-    <label>Amount (₹) <input id="eAmount" inputmode="decimal" required></label>
-    <div class="actions">
-      <button type="button" class="btn" id="eCancel">Close</button>
-      <button type="submit" class="btn primary">Save</button>
-    </div>
-  </form>
-</div>
-
-<!-- PRINT AREA (A5) -->
+<div id="modal" class="modal hidden"></div>
+<div id="toast" class="toast hidden"></div>
 <div id="printArea"></div>
-
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
